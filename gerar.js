@@ -1,4 +1,4 @@
-// api/gerar.js
+api/gerar.js
 // Endpoint serverless Vercel — protege a API key da Anthropic
 // A chave NUNCA chega ao browser do usuário
 
