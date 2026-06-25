@@ -1,12 +1,20 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
   const { prompt } = req.body;
 
-  if (!prompt || typeof prompt !== 'string' || prompt.trim().lengt
-    const resposta = await fetch('https://api.openai.com/v1/chat/completions', {
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    return res.status(400).json({ error: 'Campo prompt é obrigatório' });
+  }
+
+  if (prompt.length > 2000) {
+    return res.status(400).json({ error: 'Prompt muito longo' });
+  }
+
+  try {
+    const resposta = await fetch('https://api.openai.com/v1/chat/c
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -22,7 +30,7 @@ export default async function handler(req, res) {
     if (!resposta.ok) {
       const erro = await resposta.json().catch(() => ({}));
       return res.status(resposta.status).json({
-        error: erro?.error?.message || `Erro da API: ${resposta.status}`,
+        error: erro?.error?.message || `Erro da API: ${resposta.st
       });
     }
 
@@ -32,6 +40,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ texto });
 
   } catch (e) {
-    return res.status(500).json({ error: 'Erro interno. Tente novamente.' });
+    return res.status(500).json({ error: 'Erro interno. Tente nova
   }
 }
