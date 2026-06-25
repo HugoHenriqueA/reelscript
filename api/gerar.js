@@ -5,19 +5,8 @@ export default async function handler(req, res) {
 
   const { prompt } = req.body;
 
-  if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
-    return res.status(400).json({ error: 'Campo prompt é obrigatório' });
-  }
-
-  if (prompt.length > 2000) {
-    return res.status(400).json({ error: 'Prompt muito longo' });
-  }
-
-  try {
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().lengt
     const resposta = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,6 +35,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Erro interno. Tente novamente.' });
   }
 }
-Me avisa quando fizer isso!
-
-✻ Sautéed for 7s
