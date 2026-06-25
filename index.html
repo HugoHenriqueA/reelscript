@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReelScript — Gere scripts de Reels com IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #06060A;
+      --surface:    rgba(255,255,255,0.035);
+      --surface2:   rgba(255,255,255,0.055);
+      --border:     rgba(255,255,255,0.07);
+      --border-hi:  rgba(255,255,255,0.13);
+      --accent:     #7C3AED;
+      --accent2:    #A855F7;
+      --accent-lt:  #C084FC;
+      --accent-bg:  rgba(124,58,237,0.15);
+      --text:       #F0EFFE;
+      --text-dim:   #C4BFDA;
+      --muted:      #6E6B80;
+      --success:    #22C55E;
+      --warn:       #F59E0B;
+      --danger:     #EF4444;
+      --radius:     14px;
+      --radius-sm:  9px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Background mesh ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,58,237,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(168,85,247,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(6,6,10,0.75);
+    }
+
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 14px rgba(124,58,237,0.45);
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 16px; height: 16px; }
+    .logo-name {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff 40%, var(--accent-lt));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo-tag {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--accent-lt);
+      background: var(--accent-bg);
+      border: 1px solid rgba(124,58,237,0.3);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Layout ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 6rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--accent-lt);
+      background: var(--accent-bg);
+      border: 1px solid rgba(124,58,237,0.25);
+      padding: 5px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-lt);
+      box-shadow: 0 0 6px var(--accent-lt);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-size: clamp(30px, 5.5vw, 46px);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, #fff 0%, var(--accent-lt) 60%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 420px;
+      margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    /* ── Usage bar ── */
+    .usage-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.8rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      font-size: 13px;
+      backdrop-filter: blur(12px);
+    }
+    .usage-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .usage-dot.warn   { background: var(--warn);   box-shadow: 0 0 6px var(--warn); }
+    .usage-dot.danger { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+    .usage-bar .label { color: var(--muted); }
+    .usage-bar strong { color: var(--text); font-weight: 600; }
+    .usage-rest { margin-left: auto; font-weight: 500; color: var(--text-dim); font-size: 12px; }
+
+    /* ── Progress track ── */
+    .usage-track {
+      width: 64px;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .usage-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--success);
+      transition: width 0.4s ease, background 0.3s;
+    }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: border-color 0.2s;
+    }
+    .form-card:focus-within {
+      border-color: var(--border-hi);
+    }
+
+    .field { margin-bottom: 1.2rem; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.45rem;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 0.65rem 0.9rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      appearance: none;
+    }
+    input[type="text"]::placeholder, textarea::placeholder { color: var(--muted); }
+    input[type="text"]:hover, textarea:hover, select:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: rgba(124,58,237,0.6);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+      background: rgba(124,58,237,0.05);
+    }
+    textarea { resize: vertical; min-height: 76px; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 560px) {
+      .field-row { grid-template-columns: 1fr; }
+    }
+
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 11px; top: 50%; transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--muted);
+      pointer-events: none;
+    }
+    .select-wrap select { padding-right: 2rem; cursor: pointer; }
+
+    /* ── Botão gerar ── */
+    .btn-gerar {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.35);
+      letter-spacing: -0.01em;
+    }
+    .btn-gerar:hover:not(:disabled) {
+      opacity: 0.92;
+      box-shadow: 0 6px 32px rgba(124,58,237,0.5);
+      transform: translateY(-1px);
+    }
+    .btn-gerar:active:not(:disabled) { transform: scale(0.99) translateY(0); }
+    .btn-gerar:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
+    .btn-gerar .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .btn-gerar.loading .spinner { display: block; }
+    .btn-gerar.loading .btn-label { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Bloqueio ── */
+    .limite-aviso {
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+      display: none;
+      margin-bottom: 1.25rem;
+    }
+    .limite-aviso.visivel { display: block; }
+    .limite-aviso p { font-size: 14px; color: #FDE68A; margin-bottom: 0.35rem; font-weight: 500; }
+    .limite-aviso small { font-size: 12px; color: var(--muted); }
+
+    /* ── Erro ── */
+    .erro-msg {
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--radius-sm);
+      color: #FCA5A5;
+      font-size: 13px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.85rem;
+      display: none;
+    }
+    .erro-msg.visivel { display: block; }
+
+    /* ── Resultado ── */
+    #resultado { display: none; }
+    #resultado.visivel { display: block; animation: fadeUp 0.35s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .resultado-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 2rem 0 1rem;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--success);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .resultado-header::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .script-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.2s;
+    }
+    .script-card:hover { border-color: var(--border-hi); }
+
+    .script-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .script-card-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .label-hook    { color: #FBBF24; }
+    .label-roteiro { color: #60A5FA; }
+    .label-legenda { color: #34D399; }
+    .label-hashtag { color: #C084FC; }
+
+    .card-accent-line {
+      width: 3px;
+      height: 100%;
+      position: absolute;
+      left: 0; top: 0;
+      border-radius: 2px 0 0 2px;
+    }
+    .script-card { position: relative; }
+
+    .btn-copiar {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4px 11px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .btn-copiar:hover { color: var(--text); border-color: var(--border-hi); background: rgba(255,255,255,0.07); }
+    .btn-copiar.copiado { color: var(--success); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.06); }
+    .btn-copiar svg { width: 12px; height: 12px; }
+
+    .script-card-body {
+      padding: 1.1rem 1.2rem;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-dim);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .hashtag-pills {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 1.1rem 1.2rem;
+    }
+    .pill {
+      background: var(--accent-bg);
+      color: var(--accent-lt);
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 3px 12px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .pill:hover {
+      background: rgba(124,58,237,0.22);
+      border-color: rgba(124,58,237,0.4);
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--accent-lt); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.5 2.5l9 5.5-9 5.5V2.5z" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-name">ReelScript</span>
+    <span class="logo-tag">Beta gratuito</span>
+  </header>
+
+  <main class="container">
+
+    <div class="hero">
+      <div class="hero-eyebrow">Powered by IA</div>
+      <h1><span class="gradient-text">Scripts que param<br>o scroll</span></h1>
+      <p>Descreva seu nicho e a IA gera hook, roteiro, legenda e hashtags — prontos para gravar.</p>
+    </div>
+
+    <div class="usage-bar" id="usageBar">
+      <span class="usage-dot" id="usageDot"></span>
+      <span class="label">Gerações hoje: <strong id="usageNum">0</strong> de 3</span>
+      <div class="usage-track">
+        <div class="usage-fill" id="usageFill" style="width:0%"></div>
+      </div>
+      <span class="usage-rest" id="usageReset"></span>
+    </div>
+
+    <div class="form-card">
+      <div class="field">
+        <label for="nicho">Seu nicho ou produto</label>
+        <input
+          type="text"
+          id="nicho"
+          placeholder="Ex: suplementos para academia, moda feminina, curso de Excel..."
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="field">
+        <label for="contexto">Contexto extra <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(opcional)</span></label>
+        <textarea
+          id="contexto"
+          placeholder="Ex: lançamento de produto, promoção de 50%, depoimento de cliente, dica rápida..."
+        ></textarea>
+      </div>
+
+      <div class="field field-row">
+        <div>
+          <label for="duracao">Duração</label>
+          <div class="select-wrap">
+            <select id="duracao">
+              <option value="30">30 segundos</option>
+              <option value="60" selected>60 segundos</option>
+              <option value="90">90 segundos</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="tom">Tom</label>
+          <div class="select-wrap">
+            <select id="tom">
+              <option value="viral e dinâmico">Viral</option>
+              <option value="educativo e informativo">Educativo</option>
+              <option value="vendedor e persuasivo" selected>Vendedor</option>
+              <option value="engraçado e descontraído">Engraçado</option>
+              <option value="inspirador e motivacional">Inspirador</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="idioma">Idioma</label>
+          <div class="select-wrap">
+            <select id="idioma">
+              <option value="português brasileiro">🇧🇷 PT-BR</option>
+              <option value="inglês americano">🇺🇸 English</option>
+              <option value="espanhol">🇪🇸 Español</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="limite-aviso" id="limiteAviso">
+      <p>🔒 Você atingiu o limite de 3 scripts hoje.</p>
+      <small>O limite renova à meia-noite. Em breve haverá plano Pro ilimitado.</small>
+    </div>
+
+    <button class="btn-gerar" id="btnGerar">
+      <span class="spinner" aria-hidden="true"></span>
+      <span class="btn-label">✦ Gerar script</span>
+    </button>
+
+    <div class="erro-msg" id="erroMsg" role="alert"></div>
+
+    <div id="resultado" aria-live="polite">
+      <div class="resultado-header">Script gerado</div>
+
+      <div class="script-card">
+        <div class="card-accent-line" style="background:#FBBF24;opacity:0.7;"></div>
+        <div class="script-card-header">
+          <span class="script-card-label label-hook">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8.5 1L2 9h6l-1 6 7.5-9H8l.5-5z" fill="#FBBF24"/></svg>
+            Hook — primeiros 3s
+          </span>
+          <button class="btn-copiar" onclick="copiar('hook', this)" aria-label="Copiar hook">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            Copiar
+          </button>
+        </div>
+        <div class="script-card-body" id="hook"></div>
+      </div>
+
+      <div class="script-card">
+        <div class="card-accent-line" style="background:#60A5FA;opacity:0.7;"></div>
+        <div class="script-card-header">
+          <span class="script-card-label label-roteiro">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#60A5FA" stroke-width="1.3"/><path d="M5 6h6M5 9h4" stroke="#60A5FA" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Roteiro
+          </span>
+          <button class="btn-copiar" onclick="copiar('roteiro', this)" aria-label="Copiar roteiro">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            Copiar
+          </button>
+        </div>
+        <div class="script-card-body" id="roteiro"></div>
+      </div>
+
+      <div class="script-card">
+        <div class="card-accent-line" style="background:#34D399;opacity:0.7;"></div>
+        <div class="script-card-header">
+          <span class="script-card-label label-legenda">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h5" stroke="#34D399" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Legenda do post
+          </span>
+          <button class="btn-copiar" onclick="copiar('legenda', this)" aria-label="Copiar legenda">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            Copiar
+          </button>
+        </div>
+        <div class="script-card-body" id="legenda"></div>
+      </div>
+
+      <div class="script-card">
+        <div class="card-accent-line" style="background:#C084FC;opacity:0.7;"></div>
+        <div class="script-card-header">
+          <span class="script-card-label label-hashtag">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 6h10M3 10h10M6 2l-1.5 12M11.5 2L10 14" stroke="#C084FC" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Hashtags
+          </span>
+          <button class="btn-copiar" onclick="copiar('hashtags', this)" aria-label="Copiar hashtags">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            Copiar
+          </button>
+        </div>
+        <div class="hashtag-pills" id="hashtagsPills"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    ReelScript &nbsp;·&nbsp; Feito com <span>IA</span> &nbsp;·&nbsp; Beta
+  </footer>
+
+  <script>
+    const LIMITE   = 3;
+    const CHAVE_LS = 'reelscript_uso';
+
+    function getUso() {
+      const raw = localStorage.getItem(CHAVE_LS);
+      if (!raw) return { count: 0, data: hoje() };
+      const obj = JSON.parse(raw);
+      if (obj.data !== hoje()) return { count: 0, data: hoje() };
+      return obj;
+    }
+
+    function salvarUso(obj) {
+      localStorage.setItem(CHAVE_LS, JSON.stringify(obj));
+    }
+
+    function hoje() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function atualizarUI() {
+      const uso = getUso();
+      const restantes = LIMITE - uso.count;
+      const numEl   = document.getElementById('usageNum');
+      const dotEl   = document.getElementById('usageDot');
+      const resetEl = document.getElementById('usageReset');
+      const fillEl  = document.getElementById('usageFill');
+      const btn     = document.getElementById('btnGerar');
+      const aviso   = document.getElementById('limiteAviso');
+
+      numEl.textContent = uso.count;
+
+      const pct = Math.min((uso.count / LIMITE) * 100, 100);
+      fillEl.style.width = pct + '%';
+
+      dotEl.className = 'usage-dot';
+      if (restantes <= 0) {
+        dotEl.classList.add('danger');
+        fillEl.style.background = 'var(--danger)';
+      } else if (restantes === 1) {
+        dotEl.classList.add('warn');
+        fillEl.style.background = 'var(--warn)';
+      } else {
+        fillEl.style.background = 'var(--success)';
+      }
+
+      resetEl.textContent = restantes > 0
+        ? restantes + ' restante' + (restantes !== 1 ? 's' : '')
+        : 'limite atingido';
+
+      if (restantes <= 0) {
+        btn.disabled = true;
+        aviso.classList.add('visivel');
+      } else {
+        btn.disabled = false;
+        aviso.classList.remove('visivel');
+      }
+    }
+
+    function montarPrompt({ nicho, contexto, duracao, tom, idioma }) {
+      const ctxPart = contexto.trim() ? '\nContexto adicional: ' + contexto.trim() : '';
+      return 'Voce e um especialista em roteiros virais para redes sociais.\nCrie um roteiro completo de Reels/Short para o seguinte briefing:\n\nNicho/produto: ' + nicho + ctxPart + '\nDuracao: ' + duracao + ' segundos\nTom: ' + tom + '\nIdioma: ' + idioma + '\n\nREGRAS:\n- O hook deve ser uma frase de impacto que para o scroll nos primeiros 3 segundos\n- O roteiro deve ter cenas numeradas, curtas, com indicacao do que mostrar em tela\n- A legenda deve ser envolvente, com emojis no lugar certo, e terminar com CTA\n- As hashtags devem ser relevantes e misturar tags grandes e de nicho\n\nResponda SOMENTE neste formato, sem texto fora dele:\n\nHOOK:\n[hook aqui]\n\nROTEIRO:\n[cenas aqui]\n\nLEGENDA:\n[legenda aqui]\n\nHASHTAGS:\n[hashtags aqui, separadas por espaco, cada uma comecando com #]';
+    }
+
+    function parsearResposta(texto) {
+      const extrair = function(chave) {
+        const regex = new RegExp(chave + ':\\s*([\\s\\S]*?)(?=\\n[A-Z]+:|$)', 'i');
+        const match = texto.match(regex);
+        return match ? match[1].trim() : '';
+      };
+      return {
+        hook:     extrair('HOOK'),
+        roteiro:  extrair('ROTEIRO'),
+        legenda:  extrair('LEGENDA'),
+        hashtags: extrair('HASHTAGS'),
+      };
+    }
+
+    function exibirResultado(parsed) {
+      document.getElementById('hook').textContent    = parsed.hook;
+      document.getElementById('roteiro').textContent = parsed.roteiro;
+      document.getElementById('legenda').textContent = parsed.legenda;
+
+      const pillsEl = document.getElementById('hashtagsPills');
+      pillsEl.innerHTML = '';
+      parsed.hashtags.split(/\s+/).filter(function(h) { return h.startsWith('#'); }).forEach(function(h) {
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.textContent = h;
+        pillsEl.appendChild(pill);
+      });
+
+      document.getElementById('resultado').classList.add('visivel');
+      document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      window._scriptAtual = parsed;
+    }
+
+    function copiar(secao, btn) {
+      const textos = {
+        hook:     document.getElementById('hook').textContent,
+        roteiro:  document.getElementById('roteiro').textContent,
+        legenda:  document.getElementById('legenda').textContent,
+        hashtags: Array.from(document.querySelectorAll('.pill')).map(function(p) { return p.textContent; }).join(' '),
+      };
+      navigator.clipboard.writeText(textos[secao]).then(function() {
+        const original = btn.innerHTML;
+        btn.classList.add('copiado');
+        btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:12px;height:12px"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Copiado';
+        setTimeout(function() {
+          btn.classList.remove('copiado');
+          btn.innerHTML = original;
+        }, 1800);
+      });
+    }
+
+    async function gerarScript() {
+      const nicho    = document.getElementById('nicho').value.trim();
+      const contexto = document.getElementById('contexto').value;
+      const duracao  = document.getElementById('duracao').value;
+      const tom      = document.getElementById('tom').value;
+      const idioma   = document.getElementById('idioma').value;
+      const erroEl   = document.getElementById('erroMsg');
+      const btn      = document.getElementById('btnGerar');
+
+      erroEl.classList.remove('visivel');
+      erroEl.textContent = '';
+
+      if (!nicho) {
+        erroEl.textContent = 'Preencha o campo "Seu nicho ou produto" antes de gerar.';
+        erroEl.classList.add('visivel');
+        document.getElementById('nicho').focus();
+        return;
+      }
+
+      const uso = getUso();
+      if (uso.count >= LIMITE) { atualizarUI(); return; }
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+      document.getElementById('resultado').classList.remove('visivel');
+
+      try {
+        const resposta = await fetch('/api/gerar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: montarPrompt({ nicho, contexto, duracao, tom, idioma }) }),
+        });
+
+        if (!resposta.ok) {
+          const err = await resposta.json().catch(function() { return {}; });
+          throw new Error(err.error || 'Erro ' + resposta.status);
+        }
+
+        const json   = await resposta.json();
+        const texto  = json.texto || '';
+        const parsed = parsearResposta(texto);
+
+        uso.count++;
+        salvarUso(uso);
+        atualizarUI();
+        exibirResultado(parsed);
+
+      } catch (e) {
+        erroEl.textContent = 'Nao foi possivel gerar o script: ' + e.message + '. Tente novamente.';
+        erroEl.classList.add('visivel');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        atualizarUI();
+      }
+    }
+
+    document.getElementById('btnGerar').addEventListener('click', gerarScript);
+    document.getElementById('nicho').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') gerarScript();
+    });
+
+    atualizarUI();
+  </script>
+
+</body>
+</html>
